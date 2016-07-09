@@ -198,4 +198,85 @@ public class MultiTypeAdapterTest {
 
     }
 
+    @Test
+    public void testCLear() throws Exception {
+
+        MultiTypeAdapter adapter = new MultiTypeAdapter.Builder()
+                .threadHelper(alwaysUiThreadHelper)
+                .build();
+
+        adapter.add(itemTypeOneBinder);
+        adapter.add(itemTypeTwoBinder);
+
+        assertEquals(2, adapter.getItemCount());
+        adapter.clear();
+        assertEquals(0, adapter.getItemCount());
+
+    }
+
+    @Test
+    public void testRemoveAtPosition() throws Exception {
+
+        MultiTypeAdapter adapter = new MultiTypeAdapter.Builder()
+                .threadHelper(alwaysUiThreadHelper)
+                .build();
+
+        adapter.add(itemTypeOneBinder);
+        adapter.add(itemTypeTwoBinder);
+        adapter.add(itemTypeOneBinder);
+
+        assertEquals(3, adapter.getItemCount());
+        assertEquals(itemTypeOneBinder, adapter.getBinder(0));
+        assertEquals(itemTypeTwoBinder, adapter.getBinder(1));
+        assertEquals(itemTypeOneBinder, adapter.getBinder(2));
+
+        adapter.remove(1);
+
+        assertEquals(2, adapter.getItemCount());
+        assertEquals(itemTypeOneBinder, adapter.getBinder(0));
+        assertEquals(itemTypeOneBinder, adapter.getBinder(1));
+
+    }
+
+    @Test
+    public void testRemoveAtPositionNotOnUiThread() throws Exception {
+
+        MultiTypeAdapter adapter = new MultiTypeAdapter.Builder()
+                .threadHelper(neverUiThreadHelper)
+                .build();
+
+        try {
+            adapter.remove(0);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+
+    }
+
+    @Test
+    public void testRemoveAtPositionOutsideSize() throws Exception {
+
+        MultiTypeAdapter adapter = new MultiTypeAdapter.Builder()
+                .threadHelper(alwaysUiThreadHelper)
+                .build();
+
+        adapter.add(itemTypeOneBinder);
+        adapter.add(itemTypeTwoBinder);
+        adapter.add(itemTypeOneBinder);
+
+        assertEquals(3, adapter.getItemCount());
+        assertEquals(itemTypeOneBinder, adapter.getBinder(0));
+        assertEquals(itemTypeTwoBinder, adapter.getBinder(1));
+        assertEquals(itemTypeOneBinder, adapter.getBinder(2));
+
+        adapter.remove(3);
+
+        assertEquals(3, adapter.getItemCount());
+        assertEquals(itemTypeOneBinder, adapter.getBinder(0));
+        assertEquals(itemTypeTwoBinder, adapter.getBinder(1));
+        assertEquals(itemTypeOneBinder, adapter.getBinder(2));
+
+    }
+
+
 }

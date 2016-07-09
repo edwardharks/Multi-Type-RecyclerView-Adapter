@@ -12,6 +12,8 @@ import java.util.List;
 
 /**
  * Adapter to use with MultiTypeBinders for creating a heterogeneous list
+ * <p/>
+ * MultiTypeAdapter is single threaded and should only be called from the UI thread
  */
 public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -25,6 +27,9 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
      */
     private final ImmutableSparseArray<MultiTypeCreator> mViewCreators;
 
+    /**
+     * MultiTypeAdapter is single threaded and should only be called from the UI thread
+     */
     private final ThreadHelper mThreadHelper;
 
     private MultiTypeAdapter(Builder builder) {
@@ -63,6 +68,32 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         }
         mBinders.addAll(binders);
         // TODO: replace with notifyRangeChanged
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Remove the item at the position
+     *
+     * @param adapterPosition the position in the adapter to remove
+     */
+    public void remove(int adapterPosition) {
+        if (!mThreadHelper.isUiThread()) {
+            throw new IllegalStateException("MultiTypeAdapter should only be used from the UI thread");
+        }
+        if (adapterPosition >= 0 && adapterPosition < mBinders.size()) {
+            mBinders.remove(adapterPosition);
+            notifyItemRemoved(adapterPosition);
+        }
+    }
+
+    /**
+     * Clear all items in the adapter
+     */
+    public void clear() {
+        if (!mThreadHelper.isUiThread()) {
+            throw new IllegalStateException("MultiTypeAdapter should only be used from the UI thread");
+        }
+        mBinders.clear();
         notifyDataSetChanged();
     }
 

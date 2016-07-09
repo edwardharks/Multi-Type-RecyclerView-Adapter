@@ -3,7 +3,7 @@ package com.edwardharker.multiitemadapter;
 import android.util.SparseArray;
 
 /**
- * Wraps a {@link android.util.SparseArray} making it immutable (exposing only the get methods)
+ * Wraps a {@link android.util.SparseArray} making it immutable
  */
 final class ImmutableSparseArray<T> {
 

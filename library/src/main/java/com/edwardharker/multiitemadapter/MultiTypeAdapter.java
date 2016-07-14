@@ -8,12 +8,12 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Adapter to use with MultiTypeBinders for creating a heterogeneous list
- * <p/>
- * MultiTypeAdapter is single threaded and should only be called from the UI thread
  */
 public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -27,10 +27,13 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
      */
     private final ImmutableSparseArray<MultiTypeCreator> mViewCreators;
 
-    /**
-     * MultiTypeAdapter is single threaded and should only be called from the UI thread
-     */
     private final ThreadHelper mThreadHelper;
+
+    /**
+     * The footer of the adapter. This is simply the last item in the adapter and is maintained
+     * as the last item when add() is called.
+     */
+    private MultiTypeBinder mFooter;
 
     private MultiTypeAdapter(Builder builder) {
         mThreadHelper = builder.mThreadHelper;
@@ -48,12 +51,37 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
      * @throws IllegalStateException if not called from the UI thread
      */
     public void add(@NonNull MultiTypeBinder binder) {
-        if (!mThreadHelper.isUiThread()) {
-            throw new IllegalStateException("MultiTypeAdapter should only be used from the UI thread");
+        checkMainThread();
+        checkNonNull(binder, "binder");
+        if (mFooter != null) {
+            mBinders.add(mBinders.size() - 1, binder);
+        } else {
+            mBinders.add(binder);
         }
-        mBinders.add(binder);
         // TODO: replace with notifyItemChanged/inserted
         notifyDataSetChanged();
+    }
+
+    /**
+     * Add an item to the adapter at the position
+     *
+     * @param position the position to add the binder at
+     * @param binder   the binder to add
+     * @throws IllegalStateException     if not called from the UI thread
+     * @throws IndexOutOfBoundsException if {@code position < 0 || position > size()}
+     */
+    public void add(int position, @NonNull MultiTypeBinder binder) {
+        checkMainThread();
+        checkNonNull(binder, "binder");
+        if (position < 0 || position > mBinders.size()) {
+            throw new IndexOutOfBoundsException("position: " + position + " invalid. " +
+                    "Item count is " + getItemCount());
+        }
+        if (mFooter != null && position == mBinders.size()) {
+            position--;
+        }
+        mBinders.add(position, binder);
+        notifyItemInserted(position);
     }
 
     /**
@@ -63,38 +91,141 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
      * @throws IllegalStateException if not called from the UI thread
      */
     public void addAll(@NonNull Collection<MultiTypeBinder> binders) {
-        if (!mThreadHelper.isUiThread()) {
-            throw new IllegalStateException("MultiTypeAdapter should only be used from the UI thread");
+        checkMainThread();
+        checkNonNull(binders, "binders");
+        if (mFooter != null) {
+            mBinders.addAll(mBinders.size() - 1, binders);
+        } else {
+            mBinders.addAll(binders);
         }
-        mBinders.addAll(binders);
         // TODO: replace with notifyRangeChanged
         notifyDataSetChanged();
     }
 
     /**
-     * Remove the item at the position
+     * Add the binder to the end of the adapter. Any call to add() will insert before the footer.
+     * Calling setFooter() again will overwrite the old footer
      *
-     * @param adapterPosition the position in the adapter to remove
+     * @param binder the binder to add as the footer.
+     * @throws IllegalStateException if not called from the UI thread
      */
-    public void remove(int adapterPosition) {
-        if (!mThreadHelper.isUiThread()) {
-            throw new IllegalStateException("MultiTypeAdapter should only be used from the UI thread");
+    public void setFooter(@NonNull MultiTypeBinder binder) {
+        checkMainThread();
+        checkNonNull(binder, "binder");
+        if (mFooter != null) {
+            mBinders.remove(mBinders.size() - 1);
         }
-        if (adapterPosition >= 0 && adapterPosition < mBinders.size()) {
-            mBinders.remove(adapterPosition);
-            notifyItemRemoved(adapterPosition);
+        mBinders.add(binder);
+        mFooter = binder;
+        // TODO: replace with notifyItemInserted
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Clear the footer from the adapter if one has been set
+     *
+     * @throws IllegalStateException if not called from the UI thread
+     */
+    public void clearFooter() {
+        checkMainThread();
+        if (mFooter != null) {
+            mBinders.remove(mBinders.size() - 1);
+            mFooter = null;
+            notifyDataSetChanged();
         }
     }
 
     /**
-     * Clear all items in the adapter
+     * Get the footer
+     *
+     * @return the footer or null if no footer has been set
+     * @throws IllegalStateException if not called from the UI thread
+     */
+    @Nullable
+    public MultiTypeBinder getFooter() {
+        checkMainThread();
+        return mFooter;
+    }
+
+    /**
+     * Remove the item at position
+     *
+     * @param position the position to remove
+     * @throws IllegalStateException     if not called from the UI thread
+     * @throws IndexOutOfBoundsException if {@code position < 0 || position > size()}
+     */
+    public void remove(int position) {
+        checkMainThread();
+        if (position < 0 || position > mBinders.size()) {
+            throw new IndexOutOfBoundsException("position: " + position + " invalid. " +
+                    "Item count is " + getItemCount());
+        }
+        mBinders.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    /**
+     * Remove all of the items of the view type
+     *
+     * @param viewType the view type to remove all items of
+     * @throws IllegalStateException if not called from the UI thread
+     */
+    public void removeAllOf(@NonNull ViewType viewType) {
+        checkMainThread();
+        checkNonNull(viewType, "viewType");
+        Iterator<MultiTypeBinder> iterator = mBinders.iterator();
+        while (iterator.hasNext()) {
+            MultiTypeBinder binder = iterator.next();
+            if (binder.getViewType().equals(viewType)) {
+                iterator.remove();
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Clear all items from the adapter
+     *
+     * @throws IllegalStateException if not called from the UI thread
      */
     public void clear() {
-        if (!mThreadHelper.isUiThread()) {
-            throw new IllegalStateException("MultiTypeAdapter should only be used from the UI thread");
-        }
+        checkMainThread();
         mBinders.clear();
+        mFooter = null;
         notifyDataSetChanged();
+    }
+
+    /**
+     * Get all the binders in the adapter
+     *
+     * @return the binders in the adapter.
+     * Never null, will be an empty list if there isn't anything in the adapter
+     * @throws IllegalStateException if not called from the UI thread
+     */
+    @NonNull
+    public List<MultiTypeBinder> getBinders() {
+        checkMainThread();
+        return Collections.unmodifiableList(mBinders);
+    }
+
+    /**
+     * Get all of the binders of a particular view type in the adapter
+     *
+     * @param type the type of binders to get
+     * @return the binders in the adapter of the given type.
+     * Never null, will be an empty list if there isn't anything of the given type
+     * @throws IllegalStateException if not called from the UI thread
+     */
+    @NonNull
+    public List<MultiTypeBinder> getBinders(@Nullable ViewType type) {
+        checkMainThread();
+        List<MultiTypeBinder> results = new ArrayList<>(mBinders.size());
+        for (MultiTypeBinder binder : mBinders) {
+            if (binder.getViewType().equals(type)) {
+                results.add(binder);
+            }
+        }
+        return Collections.unmodifiableList(results);
     }
 
     /**
@@ -102,9 +233,11 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
      *
      * @param adapterPosition the position in the adapter to get
      * @return the MultiTypeBinder or null if nothing at that position
+     * @throws IllegalStateException if not called from the UI thread
      */
     @Nullable
     public MultiTypeBinder getBinder(int adapterPosition) {
+        checkMainThread();
         if (adapterPosition < 0 || adapterPosition >= mBinders.size()) {
             return null;
         }
@@ -137,6 +270,34 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         return mBinders.get(position).getViewType().getType();
     }
 
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+    }
+
+    @Override
+    public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+    }
+
+    /**
+     * Check the current thread is the main (UI) thread and throw an exception if not
+     *
+     * @throws IllegalStateException if this is not the main thread
+     */
+    private void checkMainThread() {
+        if (!mThreadHelper.isUiThread()) {
+            throw new IllegalStateException(
+                    "MultiTypeAdapter should only be used from the UI thread");
+        }
+    }
+
+    private static void checkNonNull(Object check, String objectName) {
+        if (check == null) {
+            throw new NullPointerException(objectName + " cannot be null");
+        }
+    }
+
     /**
      * Builder used to create the adapter
      */
@@ -146,12 +307,14 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         private ThreadHelper mThreadHelper = ThreadHelper.DEFAULT;
 
         /**
-         * Register a MultiTypeCreator to be used by the adapter. You must register all creators you want to use
+         * Register a MultiTypeCreator to be used by the adapter.
+         * You must register all creators you want to use
          *
          * @param creator the creator to add
          * @return this for method chaining
          */
         public Builder addCreator(@NonNull MultiTypeCreator creator) {
+            checkNonNull(creator, "creator");
             mCreators.add(creator);
             return this;
         }
@@ -163,6 +326,7 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
          * @return this for method chaining
          */
         public Builder threadHelper(@NonNull ThreadHelper threadHelper) {
+            checkNonNull(threadHelper, "threadHelper");
             mThreadHelper = threadHelper;
             return this;
         }
@@ -177,5 +341,4 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         }
 
     }
-
 }

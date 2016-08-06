@@ -132,6 +132,7 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         if (mFooter != null) {
             mBinders.remove(mBinders.size() - 1);
             mFooter = null;
+            // TODO: replace with notifyItemChange
             notifyDataSetChanged();
         }
     }
@@ -149,7 +150,8 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     }
 
     /**
-     * Remove the item at position
+     * Remove the item at position.
+     * Note if the there is a footer set and {@code position == getItemCount() - 1} the footer will be removed
      *
      * @param position the position to remove
      * @throws IllegalStateException     if not called from the UI thread
@@ -161,8 +163,12 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
             throw new IndexOutOfBoundsException("position: " + position + " invalid. " +
                     "Item count is " + getItemCount());
         }
-        mBinders.remove(position);
-        notifyItemRemoved(position);
+        if (mFooter != null && position == mBinders.size() - 1) {
+            clearFooter();
+        } else {
+            mBinders.remove(position);
+            notifyItemRemoved(position);
+        }
     }
 
     /**
@@ -174,6 +180,9 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     public void removeAllOf(@NonNull ViewType viewType) {
         checkMainThread();
         checkNonNull(viewType, "viewType");
+        if (mFooter != null && viewType.equals(mFooter.getViewType())) {
+            clearFooter();
+        }
         Iterator<MultiTypeBinder> iterator = mBinders.iterator();
         while (iterator.hasNext()) {
             MultiTypeBinder binder = iterator.next();

@@ -7,6 +7,8 @@ import android.support.v7.widget.RecyclerView;
 import com.edwardharker.multiitemadapter.MultiTypeAdapter;
 import com.edwardharker.multiitemadapter.MultiTypeBinder;
 
+import java.util.Arrays;
+
 public class MainActivity extends AppCompatActivity {
 
     private int mViewTypeOneCount = 0;
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
         MultiTypeAdapter adapter = new MultiTypeAdapter.Builder()
                 .addCreator(new ViewTypeOne.Creator())
                 .addCreator(new ViewTypeTwo.Creator())
+                .addCreator(new FooterViewType.Creator())
                 .build();
 
         recyclerView.setAdapter(adapter);
@@ -33,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
         adapter.add(newViewTypeTwoBinder());
         adapter.add(newViewTypeOneBinder());
         adapter.add(newViewTypeTwoBinder());
+
+        // Setting footer. It will always be the last item in the adapter
+        adapter.setFooter(new FooterViewType.Binder());
+
         adapter.add(newViewTypeOneBinder());
         adapter.add(newViewTypeTwoBinder());
         adapter.add(newViewTypeOneBinder());
@@ -49,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
         adapter.add(newViewTypeTwoBinder());
         adapter.add(newViewTypeOneBinder());
         adapter.add(newViewTypeTwoBinder());
+
+        adapter.addAll(Arrays.asList(newViewTypeOneBinder(), newViewTypeTwoBinder()));
 
     }
 

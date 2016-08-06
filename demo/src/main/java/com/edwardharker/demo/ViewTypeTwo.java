@@ -2,6 +2,7 @@ package com.edwardharker.demo;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,9 +10,13 @@ import android.widget.TextView;
 
 import com.edwardharker.multiitemadapter.MultiTypeBinder;
 import com.edwardharker.multiitemadapter.MultiTypeCreator;
+import com.edwardharker.multiitemadapter.MultiTypeViewHolder;
+import com.edwardharker.multiitemadapter.SimpleMultiTypeViewHolder;
 import com.edwardharker.multiitemadapter.ViewType;
 
 public class ViewTypeTwo {
+
+    private static final String TAG = ViewTypeTwo.class.getSimpleName();
 
     public static class Creator implements MultiTypeCreator {
 
@@ -52,7 +57,7 @@ public class ViewTypeTwo {
 
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends SimpleMultiTypeViewHolder {
 
         private final TextView mText;
 

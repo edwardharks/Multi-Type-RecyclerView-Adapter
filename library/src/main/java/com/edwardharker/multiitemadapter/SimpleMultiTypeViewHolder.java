@@ -1,7 +1,22 @@
 package com.edwardharker.multiitemadapter;
 
-/**
- * Created by edwardharker on 06/08/2016.
- */
-public class SimpleMultiTypeViewHolder {
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+
+public class SimpleMultiTypeViewHolder extends RecyclerView.ViewHolder implements MultiTypeViewHolder {
+
+    public SimpleMultiTypeViewHolder(View itemView) {
+        super(itemView);
+    }
+
+    @Override
+    public void onViewAttachedToWindow() {
+
+    }
+
+    @Override
+    public void onViewDetachedToWindow() {
+
+    }
+
 }

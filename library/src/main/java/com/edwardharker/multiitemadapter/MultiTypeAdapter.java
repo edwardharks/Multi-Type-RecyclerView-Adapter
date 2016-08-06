@@ -2,6 +2,7 @@ package com.edwardharker.multiitemadapter;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
 import android.view.ViewGroup;
@@ -251,7 +252,11 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
             throw new IllegalArgumentException("Unknown viewType: " + viewType
                     + ". Make sure you call Builder.addCreator()");
         }
-        return creator.onCreateViewHolder(parent);
+        RecyclerView.ViewHolder holder = creator.onCreateViewHolder(parent);
+        if (!(holder instanceof MultiTypeViewHolder)) {
+            throw new RuntimeException("ViewHolder must implement MultiTypeViewHolder");
+        }
+        return holder;
     }
 
     @Override
@@ -278,6 +283,13 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     @Override
     public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
+        ((MultiTypeViewHolder) holder).onViewAttachedToWindow();
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(RecyclerView.ViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        ((MultiTypeViewHolder) holder).onViewDetachedToWindow();
     }
 
     /**
@@ -325,6 +337,7 @@ public final class MultiTypeAdapter extends RecyclerView.Adapter<RecyclerView.Vi
          * @param threadHelper the thread helper
          * @return this for method chaining
          */
+        @VisibleForTesting
         public Builder threadHelper(@NonNull ThreadHelper threadHelper) {
             checkNonNull(threadHelper, "threadHelper");
             mThreadHelper = threadHelper;

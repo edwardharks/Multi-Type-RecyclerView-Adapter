@@ -1,6 +1,7 @@
 package com.edwardharker.multiitemadapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.view.ViewGroup;
 
 import org.junit.Before;
@@ -45,6 +46,8 @@ public class MultiTypeAdapterTest {
         itemTypeOneViewType = mock(ViewType.class);
         when(itemTypeOneBinder.getViewType()).thenReturn(itemTypeOneViewType);
         when(itemTypeOneCreator.getViewType()).thenReturn(itemTypeOneViewType);
+        when(itemTypeOneCreator.onCreateViewHolder(any(ViewGroup.class)))
+                .thenReturn(new MockViewHolder(mock(View.class)));
         when(itemTypeOneViewType.getType()).thenReturn(1);
 
         itemTypeTwoBinder = mock(MultiTypeBinder.class);
@@ -52,6 +55,8 @@ public class MultiTypeAdapterTest {
         itemTypeTwoViewType = mock(ViewType.class);
         when(itemTypeTwoBinder.getViewType()).thenReturn(itemTypeTwoViewType);
         when(itemTypeTwoCreator.getViewType()).thenReturn(itemTypeTwoViewType);
+        when(itemTypeTwoCreator.onCreateViewHolder(any(ViewGroup.class)))
+                .thenReturn(new MockViewHolder(mock(View.class)));
         when(itemTypeTwoViewType.getType()).thenReturn(2);
 
         itemTypeFooterBinder = mock(MultiTypeBinder.class);
@@ -59,6 +64,8 @@ public class MultiTypeAdapterTest {
         itemTypeFooterViewType = mock(ViewType.class);
         when(itemTypeFooterBinder.getViewType()).thenReturn(itemTypeFooterViewType);
         when(itemTypeFooterCreator.getViewType()).thenReturn(itemTypeFooterViewType);
+        when(itemTypeFooterCreator.onCreateViewHolder(any(ViewGroup.class)))
+                .thenReturn(new MockViewHolder(mock(View.class)));
         when(itemTypeFooterViewType.getType()).thenReturn(3);
 
         alwaysUiThreadHelper = mock(ThreadHelper.class);
@@ -638,6 +645,23 @@ public class MultiTypeAdapterTest {
         } catch (IllegalStateException expected) {
         }
 
+    }
+
+    private static final class MockViewHolder extends RecyclerView.ViewHolder implements MultiTypeViewHolder {
+
+        public MockViewHolder(View itemView) {
+            super(itemView);
+        }
+
+        @Override
+        public void onViewAttachedToWindow() {
+
+        }
+
+        @Override
+        public void onViewDetachedToWindow() {
+
+        }
     }
 
 }

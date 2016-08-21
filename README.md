@@ -83,6 +83,8 @@ mAdapter = new MultiTypeAdapter.Builder()
     .addCreator(new ViewTypeTwo.Creator())
     .addCreator(new FooterViewType.Creator())
     .build();
+    
+mRecyclerView.setAdapter(mAdapter);
 ```
 You need to add all of the `MultiTypeCreator` you want to use with the adapter
 

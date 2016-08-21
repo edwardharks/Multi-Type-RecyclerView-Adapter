@@ -89,7 +89,7 @@ mRecyclerView.setAdapter(mAdapter);
 You need to add all of the `MultiTypeCreator` you want to use with the adapter
 
 ```java
-Binder binder = ViewTypeOne.Binder("View type one");
+MultiTypeBinder binder = ViewTypeOne.Binder("View type one");
 mAdapter.add(binder)
 ```
 Add your binders to the adapter

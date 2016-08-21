@@ -16,7 +16,7 @@ public enum DemoViewTypes implements ViewType {
 ```
 An Enum is a good choice for this
 
-**Create a class to hold your view type.**
+**Create a class to hold your view type**
 ```java
 public class ViewTypeOne {
     

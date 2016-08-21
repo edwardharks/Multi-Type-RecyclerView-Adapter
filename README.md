@@ -2,7 +2,7 @@
 A simple adapter for creating a RecyclerView with an unlimited number of view types.
 
 # Usage
-**Declar your view types**
+**Declare your view types**
 ```java
 public enum DemoViewTypes implements ViewType {
 
@@ -74,7 +74,7 @@ public class ViewTypeOne {
     }
 }
 ```
-The `MultiTypeCreator` is responsible for inflating the view used for this view type and is the equivilant of `createViewHolder(ViewGroup parent, int viewType)` that you would normally override. The `MultiTypeBinder` is resposible for binding data to the view and is the equivelant of `bindViewHolder(VH holder, int position)`. The `ViewHolder` is just a regular view holder apart from you need to implement `MultiTypeViewHolder` or extend `SimpleMultiTypeViewHolder`
+The `MultiTypeCreator` is responsible for inflating the view used for this view type and is the equivilant of `createViewHolder(ViewGroup parent, int viewType)` that you would normally override. The `MultiTypeBinder` is responsible for binding data to the view and is the equivalent of `bindViewHolder(VH holder, int position)`. The `ViewHolder` is just a regular view holder. All you need to do is implement `MultiTypeViewHolder` or extend `SimpleMultiTypeViewHolder`
 
 **Use the MultiTypeAdapter**
 ```java
